@@ -10,10 +10,6 @@ def load_from_env() -> None:
     """Read all WORKSPACE_*_API_KEY env vars and populate the registry."""
     global _registry
     _registry = {}
-    import logging
-    logger = logging.getLogger("workspace")
-    ws_keys = [k for k in os.environ if k.startswith("WORKSPACE_")]
-    logger.info("Found %d WORKSPACE_* env vars: %s", len(ws_keys), ws_keys)
     for key, value in os.environ.items():
         match = WORKSPACE_ENV_PATTERN.match(key)
         if match and value:
@@ -21,8 +17,6 @@ def load_from_env() -> None:
             # Transform: ENAVRA -> enavra, HEYREACH_CLIENT -> heyreach-client
             display_name = raw_name.lower().replace("_", "-")
             _registry[display_name] = value
-            logger.info("Loaded workspace: %s", display_name)
-    logger.info("Total workspaces loaded: %d", len(_registry))
 
 
 def list_workspaces() -> list[dict]:
