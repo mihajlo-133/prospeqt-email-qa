@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Request
+from fastapi.responses import JSONResponse
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -332,3 +333,19 @@ async def scan_workspace(request: Request, ws_name: str):
         "campaigns": campaigns_display,
         "not_scanned": False,
     })
+
+
+@router.get("/debug/env", response_class=JSONResponse)
+async def debug_env():
+    """TEMPORARY: debug env var visibility. Remove after fixing."""
+    import os
+    from app.services.workspace import _registry
+    ws_keys = [k for k in os.environ if k.startswith("WORKSPACE_")]
+    return {
+        "workspace_env_vars": ws_keys,
+        "workspace_env_count": len(ws_keys),
+        "registry_count": len(_registry),
+        "registry_names": list(_registry.keys()),
+        "has_admin_password": "ADMIN_PASSWORD" in os.environ,
+        "has_port": "PORT" in os.environ,
+    }
