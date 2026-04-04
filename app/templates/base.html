@@ -364,23 +364,6 @@
       showToast('Something went wrong. Refresh the page or try the scan again.', 'error');
     });
 
-    // After Scan All returns (instantly now), start polling for fresh data
-    var _pollTimer = null;
-    document.body.addEventListener('htmx:afterRequest', function(evt) {
-      if (evt.detail.pathInfo && evt.detail.pathInfo.requestPath === '/api/scan/all') {
-        showToast('Scan started — refreshing in 10s...', 'success');
-        clearInterval(_pollTimer);
-        var polls = 0;
-        _pollTimer = setInterval(function() {
-          polls++;
-          var grid = document.getElementById('workspace-grid');
-          if (grid) {
-            htmx.ajax('POST', '/api/scan/all', {target: '#workspace-grid', swap: 'outerHTML'});
-          }
-          if (polls >= 6) { clearInterval(_pollTimer); _pollTimer = null; }
-        }, 10000);
-      }
-    });
   </script>
   {% block extra_scripts %}{% endblock %}
 </body>

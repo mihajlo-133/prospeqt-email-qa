@@ -185,8 +185,8 @@ async def health():
 # ---------------------------------------------------------------------------
 
 
-async def _build_workspace_grid_response(request: Request):
-    """Build the workspace grid partial response (shared by scan_all and per-ws scan)."""
+async def _build_workspace_grid_response(request: Request, polling: bool = False):
+    """Build the workspace grid partial response. If polling=True, grid auto-refreshes until data arrives."""
     data = await get_cache().get_all()
     cached_names = {ws.workspace_name for ws in data.workspaces}
     ws_display = []
@@ -216,9 +216,12 @@ async def _build_workspace_grid_response(request: Request):
                 "freshness_txt": "Not scanned",
                 "error": None,
             })
+    # Enable polling when scan was just triggered and some workspaces lack data
+    has_not_scanned = any(w["health"] == "not-scanned" for w in ws_display)
     return templates.TemplateResponse(request, "_workspace_grid.html", {
         "workspaces": ws_display,
         "ws_count": len(ws_display),
+        "polling": polling and has_not_scanned,
     })
 
 
@@ -226,6 +229,12 @@ async def _build_workspace_grid_response(request: Request):
 async def scan_all(request: Request, background_tasks: BackgroundTasks):
     """Trigger QA across all workspaces and return grid immediately. Scan runs in background."""
     background_tasks.add_task(trigger_qa_all)
+    return await _build_workspace_grid_response(request, polling=True)
+
+
+@router.get("/api/workspace-grid", response_class=HTMLResponse)
+async def workspace_grid_partial(request: Request):
+    """Return the workspace grid partial for HTMX polling."""
     return await _build_workspace_grid_response(request)
 
 
