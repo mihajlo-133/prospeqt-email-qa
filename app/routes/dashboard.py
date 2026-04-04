@@ -349,3 +349,15 @@ async def debug_env():
         "has_admin_password": "ADMIN_PASSWORD" in os.environ,
         "has_port": "PORT" in os.environ,
     }
+
+
+@router.get("/debug/cache", response_class=JSONResponse)
+async def debug_cache():
+    """TEMPORARY: debug cache state."""
+    from app.services.cache import get_cache
+    data = await get_cache().get_all()
+    return {
+        "workspace_count": len(data.workspaces),
+        "workspace_names": [ws.workspace_name for ws in data.workspaces],
+        "total_broken": data.total_broken,
+    }
