@@ -2,7 +2,7 @@ import math
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, BackgroundTasks, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -223,9 +223,9 @@ async def _build_workspace_grid_response(request: Request):
 
 
 @router.post("/api/scan/all", response_class=HTMLResponse)
-async def scan_all(request: Request):
-    """Trigger QA across all workspaces and return refreshed workspace grid. Per OPS-01, D-16."""
-    await trigger_qa_all()
+async def scan_all(request: Request, background_tasks: BackgroundTasks):
+    """Trigger QA across all workspaces and return grid immediately. Scan runs in background."""
+    background_tasks.add_task(trigger_qa_all)
     return await _build_workspace_grid_response(request)
 
 
@@ -324,9 +324,8 @@ async def campaign_detail(request: Request, ws_name: str, campaign_id: str, page
 
 
 @router.post("/api/scan/ws/{ws_name}/campaign/{campaign_id}", response_class=HTMLResponse)
-async def scan_campaign(request: Request, ws_name: str, campaign_id: str):
-    """Trigger QA for one campaign and return refreshed results. Per OPS-03, D-16."""
-    # Look up campaign dict from cache for trigger function
+async def scan_campaign(request: Request, ws_name: str, campaign_id: str, background_tasks: BackgroundTasks):
+    """Trigger QA for one campaign and return current state immediately. Scan runs in background."""
     result = await get_cache().get_workspace(ws_name)
     campaign_dict = None
     if result:
@@ -336,21 +335,19 @@ async def scan_campaign(request: Request, ws_name: str, campaign_id: str):
                 break
 
     if campaign_dict is None:
-        # Try discovery cache
         discovered = await get_cache().get_campaigns(ws_name)
         campaign_dict = next((c for c in discovered if c.get("id") == campaign_id), None)
 
     if campaign_dict:
-        await trigger_qa_campaign(campaign_id, campaign_dict, ws_name)
+        background_tasks.add_task(trigger_qa_campaign, campaign_id, campaign_dict, ws_name)
 
-    # Re-render the campaign detail (fire-and-forget — show current cache state)
     return await campaign_detail(request, ws_name, campaign_id)
 
 
 @router.post("/api/scan/ws/{ws_name}", response_class=HTMLResponse)
-async def scan_workspace(request: Request, ws_name: str):
-    """Trigger QA for one workspace and return refreshed partial. Per OPS-02, D-16."""
-    await trigger_qa_workspace(ws_name)
+async def scan_workspace(request: Request, ws_name: str, background_tasks: BackgroundTasks):
+    """Trigger QA for one workspace and return partial immediately. Scan runs in background."""
+    background_tasks.add_task(trigger_qa_workspace, ws_name)
 
     # If called from overview page (hx-target is workspace-grid), return full grid
     hx_target = request.headers.get("hx-target", "")
