@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -78,7 +77,10 @@ def total_leads_for_workspace(ws) -> int:
 @router.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
     """Overview page: all workspaces with health status. Per VIEW-01, D-04/D-05/D-06."""
+    from app.services.workspace import list_workspaces
     data = await get_cache().get_all()
+    # Build a set of workspace names that have cache data
+    cached_names = {ws.workspace_name for ws in data.workspaces}
     ws_display = []
     for ws in data.workspaces:
         ws_total = total_leads_for_workspace(ws)
@@ -93,6 +95,20 @@ async def dashboard(request: Request):
             "freshness_txt": freshness_text(ws.last_checked),
             "error": ws.error,
         })
+    # Show registered workspaces that have no cache data yet (not-scanned state)
+    for ws_info in list_workspaces():
+        if ws_info["name"] not in cached_names:
+            ws_display.append({
+                "name": ws_info["name"],
+                "broken": 0,
+                "total": 0,
+                "health": "not-scanned",
+                "pct": 0,
+                "campaign_count": 0,
+                "freshness_cls": "stale",
+                "freshness_txt": "Not scanned",
+                "error": None,
+            })
     return templates.TemplateResponse(request, "dashboard.html", {
         "workspaces": ws_display,
         "ws_count": len(ws_display),
@@ -333,31 +349,3 @@ async def scan_workspace(request: Request, ws_name: str):
         "campaigns": campaigns_display,
         "not_scanned": False,
     })
-
-
-@router.get("/debug/env", response_class=JSONResponse)
-async def debug_env():
-    """TEMPORARY: debug env var visibility. Remove after fixing."""
-    import os
-    from app.services.workspace import _registry
-    ws_keys = [k for k in os.environ if k.startswith("WORKSPACE_")]
-    return {
-        "workspace_env_vars": ws_keys,
-        "workspace_env_count": len(ws_keys),
-        "registry_count": len(_registry),
-        "registry_names": list(_registry.keys()),
-        "has_admin_password": "ADMIN_PASSWORD" in os.environ,
-        "has_port": "PORT" in os.environ,
-    }
-
-
-@router.get("/debug/cache", response_class=JSONResponse)
-async def debug_cache():
-    """TEMPORARY: debug cache state."""
-    from app.services.cache import get_cache
-    data = await get_cache().get_all()
-    return {
-        "workspace_count": len(data.workspaces),
-        "workspace_names": [ws.workspace_name for ws in data.workspaces],
-        "total_broken": data.total_broken,
-    }
