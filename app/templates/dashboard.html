@@ -9,7 +9,7 @@
     gap: 12px;
     margin-bottom: 48px;
   }
-  .page-title { font-size: 20px; font-weight: 600; color: var(--tx1); }
+  .page-title { font-size: 20px; font-weight: 700; color: var(--tx1); font-family: 'Space Grotesk', sans-serif; letter-spacing: -.02em; }
   .page-count { font-size: 14px; color: var(--tx2); }
 
   /* Workspace card grid — 3 col desktop, 2 col tablet, 1 col mobile per UI-SPEC */
@@ -26,10 +26,11 @@
     .ws-grid { grid-template-columns: 1fr; }
   }
 
-  /* Workspace card per UI-SPEC */
+  /* Workspace card */
   .ws-card {
     background: var(--bg-el);
-    border-radius: 8px;
+    border: 1px solid var(--bd);
+    border-radius: var(--radius-lg);
     box-shadow: var(--sh);
     padding: 24px;
     text-decoration: none;
@@ -37,10 +38,13 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    transition: box-shadow var(--transition);
+    transition: background .12s, border-color .15s;
     position: relative;
   }
-  .ws-card:hover { box-shadow: var(--sh-md); }
+  .ws-card:hover { background: var(--bg-hov); }
+  .ws-card.health-green { box-shadow: inset 4px 0 0 var(--green), var(--sh); }
+  .ws-card.health-yellow { box-shadow: inset 4px 0 0 var(--amber), var(--sh); }
+  .ws-card.health-red { box-shadow: inset 4px 0 0 var(--red), var(--sh); }
   .ws-card-header {
     display: flex;
     align-items: center;
@@ -52,7 +56,9 @@
     align-items: center;
     gap: 8px;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -.02em;
   }
   .ws-card-meta { font-size: 13px; color: var(--tx2); line-height: 1.4; }
   .ws-card-link {
@@ -81,6 +87,26 @@
     <h1 class="page-title">Workspaces</h1>
     <span class="page-count">{{ ws_count }} workspace{{ 's' if ws_count != 1 else '' }}</span>
   </div>
+
+  {% if workspaces %}
+  <div class="chips-wrap">
+    <div class="chips">
+      {% if red_count > 0 %}
+      <span class="chip c-red"><span class="dot dot-red"></span><strong>{{ red_count }}</strong>&nbsp;action needed</span>
+      {% endif %}
+      {% if amber_count > 0 %}
+      <span class="chip c-amber"><span class="dot dot-amber"></span><strong>{{ amber_count }}</strong>&nbsp;watch</span>
+      {% endif %}
+      {% if green_count > 0 %}
+      <span class="chip c-green"><span class="dot dot-green"></span><strong>{{ green_count }}</strong>&nbsp;clean</span>
+      {% endif %}
+      <span class="chip c-blue"><strong>{{ total_campaigns }}</strong>&nbsp;total campaigns</span>
+      {% if total_broken > 0 %}
+      <span class="chip c-red"><strong>{{ total_broken }}</strong>&nbsp;broken leads</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
 
   {% include "_workspace_grid.html" %}
 </div>

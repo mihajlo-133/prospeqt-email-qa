@@ -1,11 +1,10 @@
 {% if workspaces %}
 <div class="ws-grid" id="workspace-grid">
   {% for ws in workspaces %}
-  <div class="ws-card">
+  <div class="ws-card health-{{ ws.health }}">
     <a href="/ws/{{ ws.name }}" class="ws-card-link" aria-label="{{ ws.name }}"></a>
     <div class="ws-card-header">
       <div class="ws-card-name">
-        <span class="health-dot health-dot--{{ ws.health }}"></span>
         {{ ws.name }}
       </div>
       <button class="scan-btn-secondary"
@@ -19,16 +18,25 @@
     {% if ws.error %}
     <div class="ws-card-meta" style="color: var(--red);">{{ ws.error }}</div>
     {% else %}
-    <div class="ws-card-meta">
-      {% if ws.broken > 0 %}
-        {{ ws.pct }} broken ({{ ws.broken }} / {{ ws.total }} leads)
+    <div class="ws-card-meta" style="display:flex;align-items:center;gap:8px;">
+      {% if ws.health == 'green' %}
+      <span class="pill pill-g">Clean</span>
+      {% elif ws.health == 'yellow' %}
+      <span class="pill pill-a">Watch</span>
+      {% elif ws.health == 'red' %}
+      <span class="pill pill-r">Action</span>
+      {% elif ws.health == 'not-scanned' %}
+      <span class="pill pill-m">Not Scanned</span>
       {% else %}
-        Clean
+      <span class="pill pill-m">Not Scanned</span>
+      {% endif %}
+      {% if ws.broken > 0 %}
+        <span style="font-family:'Space Mono',monospace;font-size:13px;">{{ ws.broken }} / {{ ws.total }}</span>
       {% endif %}
     </div>
     <div class="ws-card-meta">{{ ws.campaign_count }} campaign{{ 's' if ws.campaign_count != 1 else '' }}</div>
     {% endif %}
-    <div class="ws-card-meta freshness freshness--{{ ws.freshness_cls }}">{{ ws.freshness_txt }}</div>
+    <div class="ws-card-meta freshness freshness--{{ ws.freshness_cls }}" style="font-family:'Space Mono',monospace;font-size:11px;">{{ ws.freshness_txt }}</div>
   </div>
   {% endfor %}
 </div>

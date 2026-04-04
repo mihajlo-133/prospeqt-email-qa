@@ -6,26 +6,29 @@
   <title>{% block title %}Email QA{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAHlBMVEVMaXEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABKvP01AAAACXRSTlMA46EiQoTCEGeetEsFAAAACXBIWXMAAAsTAAALEwEAmpwYAAABWElEQVR42u2Xyw7EIAhFS1Us///Dk3bqGywyq0l6t+oJeIngtk3lcXebXW4nIjisx2MAumRE+Pv4KUMeDqlRcIvRU6+lPA4gRqANwiMJUl3FZZ0kCGrrRMShts6Qh0NSSbCUsW4pjwNoQYOlHmlR3VVI5qGTIgtRkQJ46W6Qu8cwVE0UwrvATQLcxjrJpj5yOZYN2RaXN6KXMkxxxX3Pq1VQ342M0Xd4CXzWfA0oEbvA3HAq1Ay+cmoB5ZgTi93HpuZ7gPbRyb4OAN2jU66TATw/OnXNswDC+fmmUlgAvIAX8AL+AdD272VA36NWAUPzWwMw/XsFELnurQcIo5caII1eBQBTgDi8VENjFeIIkMYkz484SsDYBtNooAOw/fseDRSAfvrIQQQVAPx0VH8CAD99lDxwDkDDL1CRvBJg/UFOrdMD0P4FfrJOAQBz9F/ATx/48zmYLn8A5oQ0r5uSKKoAAAAASUVORK5CYII=">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
   <style>
     :root {
       --bg: #f5f5f7;
       --bg-el: #ffffff;
       --bg-hov: #f0f0f2;
+      --bg-sel: #e8eeff;
       --bd: #e0e0e4;
       --bd-s: #d0d0d4;
       --tx1: #1a1a1a;
       --tx2: #6b6b6b;
-      --tx3: #707073;
+      --tx3: #8a8a8e;
       --blue: #2756f7;
       --blue-h: #1679fa;
-      --green: #187a35;
-      --amber: #965f00;
+      --blue-bg: rgba(39,86,247,.1);
+      --green: #1a8a3e;
+      --amber: #b87a00;
       --red: #c33939;
-      --sh: 0 1px 3px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.04);
-      --sh-md: 0 4px 12px rgba(0,0,0,0.08);
-      --sh-lg: 0 8px 24px rgba(0,0,0,0.12);
+      --sh: 0 0.6px 0.6px -1.25px rgba(0,0,0,.06), 0 2.3px 2.3px -2.5px rgba(0,0,0,.05), 0 10px 10px -3.75px rgba(0,0,0,.03);
+      --sh-md: 0 4px 12px rgba(0,0,0,.08);
+      --sh-lg: 0 10px 25px -5px rgba(0,0,0,.1);
       --radius: 8px;
       --radius-lg: 12px;
       --transition: 0.2s ease;
@@ -43,6 +46,7 @@
       color: var(--tx1);
       background: var(--bg);
       line-height: 1.5;
+      font-variant-numeric: tabular-nums;
       -webkit-font-smoothing: antialiased;
     }
 
@@ -60,12 +64,27 @@
       z-index: 100;
     }
 
-    .topbar-brand {
-      font-size: 18px;
-      font-weight: 600;
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 17px;
+      font-weight: 700;
       color: var(--tx1);
+      letter-spacing: -.03em;
+      font-family: 'Space Grotesk', sans-serif;
       text-decoration: none;
     }
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: linear-gradient(180deg, #FFEAA9 0%, #FFD348 35%, #FF9B1C 65%, #FF4A00 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo-icon svg { width: 16px; height: 16px; }
 
     .topbar-actions {
       display: flex;
@@ -151,24 +170,25 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Scan button — Primary (topbar) per UI-SPEC */
+    /* Scan button — Primary (topbar) */
     .scan-btn-primary {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background: var(--blue);
+      gap: 6px;
+      min-height: 44px;
+      padding: 0 18px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(180deg, #1679fa -23%, #0a61d1 100%);
       color: #fff;
       font-size: 13px;
       font-weight: 600;
-      padding: 8px 16px;
-      border-radius: 8px;
-      min-height: 44px;
-      border: none;
       cursor: pointer;
-      font-family: inherit;
-      transition: background var(--transition);
+      transition: opacity .15s, transform .1s;
+      font-family: 'Inter', sans-serif;
+      box-shadow: 0 2px 8px rgba(22,121,250,.25);
     }
-    .scan-btn-primary:hover { background: var(--blue-h); }
+    .scan-btn-primary:hover { opacity: .92; transform: translateY(-1px); }
     .scan-btn-primary[disabled] { pointer-events: none; opacity: 0.6; }
 
     /* Scan button — Secondary (per-workspace, per-campaign) per UI-SPEC */
@@ -226,7 +246,7 @@
     .breadcrumb-sep { color: var(--tx3); margin: 0 6px; }
     .breadcrumb-current { color: var(--tx1); }
 
-    /* Status badge pills per UI-SPEC */
+    /* Status badge pills */
     .status-badge {
       display: inline-block;
       font-size: 13px;
@@ -245,6 +265,28 @@
       border: 1px solid var(--bd);
     }
 
+    /* Health pills (replaces dots on cards) */
+    .pill { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 6px; font-size: 11px; font-weight: 600; letter-spacing: .02em; }
+    .pill-g { background: rgba(26,138,62,.08); color: #1a8a3e; border: 1px solid rgba(26,138,62,.2); }
+    .pill-a { background: rgba(184,122,0,.08); color: #b87a00; border: 1px solid rgba(184,122,0,.2); }
+    .pill-r { background: rgba(195,57,57,.08); color: #c33939; border: 1px solid rgba(195,57,57,.2); }
+    .pill-m { background: var(--bg-el); color: var(--tx3); border: 1px solid var(--bd); }
+
+    /* Summary chips (overview page) */
+    .chips-wrap { padding: 20px 0 16px; }
+    .chips { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--bd); background: var(--bg-el); font-size: 12px; color: var(--tx2); box-shadow: var(--sh); font-family: 'Inter', sans-serif; }
+    .chip strong { color: var(--tx1); font-weight: 600; }
+    .chip.c-red { border-color: rgba(195,57,57,.2); background: rgba(195,57,57,.04); color: #c33939; }
+    .chip.c-amber { border-color: rgba(184,122,0,.2); background: rgba(184,122,0,.04); color: #b87a00; }
+    .chip.c-green { border-color: rgba(26,138,62,.2); background: rgba(26,138,62,.04); color: #1a8a3e; }
+    .chip.c-blue { border-color: var(--blue-bg); background: var(--blue-bg); color: var(--blue); }
+    .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .dot-red { background: var(--red); }
+    .dot-amber { background: var(--amber); }
+    .dot-green { background: var(--green); }
+    .dot-muted { background: var(--tx3); }
+
     /* Page shell per UI-SPEC */
     .page-shell {
       max-width: 1200px;
@@ -253,7 +295,7 @@
     }
 
     /* Utility: meta/label text */
-    .text-meta { font-size: 12px; color: var(--tx3); font-weight: 500; letter-spacing: 0.01em; }
+    .text-meta { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--tx3); font-weight: 600; font-family: 'Space Mono', monospace; }
 
     /* Freshness indicator */
     .freshness { font-size: 13px; }
@@ -265,7 +307,12 @@
 </head>
 <body>
   <nav class="topbar">
-    <a href="/" class="topbar-brand">Email QA</a>
+    <a href="/" class="logo">
+      <span class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2C8 7 4 10 4 14a8 8 0 0016 0c0-4-4-7-8-12z" fill="#fff"/></svg>
+      </span>
+      Email QA
+    </a>
     <div class="topbar-actions">
       <button class="scan-btn-primary"
               hx-post="/api/scan/all"

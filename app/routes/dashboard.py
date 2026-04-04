@@ -109,9 +109,21 @@ async def dashboard(request: Request):
                 "freshness_txt": "Not scanned",
                 "error": None,
             })
+    # Aggregate stats for summary chips
+    red_count = sum(1 for w in ws_display if w["health"] == "red")
+    amber_count = sum(1 for w in ws_display if w["health"] == "yellow")
+    green_count = sum(1 for w in ws_display if w["health"] == "green")
+    total_campaigns = sum(w["campaign_count"] for w in ws_display)
+    total_broken = sum(w["broken"] for w in ws_display)
+
     return templates.TemplateResponse(request, "dashboard.html", {
         "workspaces": ws_display,
         "ws_count": len(ws_display),
+        "red_count": red_count,
+        "amber_count": amber_count,
+        "green_count": green_count,
+        "total_campaigns": total_campaigns,
+        "total_broken": total_broken,
     })
 
 

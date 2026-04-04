@@ -22,11 +22,29 @@
     box-shadow: var(--sh-md);
   }
 
+  .login-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .login-logo .logo-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #FFEAA9 0%, #FFD348 35%, #FF9B1C 65%, #FF4A00 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .login-logo .logo-icon svg { width: 18px; height: 18px; }
+
   .login-heading {
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--tx1);
-    margin-bottom: 24px;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -.02em;
   }
 
   .form-group {
@@ -64,19 +82,21 @@
     width: 100%;
     margin-top: 16px;
     padding: 12px;
-    border-radius: 8px;
-    background: var(--blue);
+    border-radius: 12px;
+    background: linear-gradient(180deg, #1679fa -23%, #0a61d1 100%);
     color: #fff;
     font-size: 14px;
     font-weight: 600;
-    font-family: inherit;
+    font-family: 'Inter', sans-serif;
     border: none;
     cursor: pointer;
-    transition: opacity var(--transition);
+    transition: opacity .15s, transform .1s;
+    box-shadow: 0 2px 8px rgba(22,121,250,.25);
   }
 
   .btn-primary:hover {
-    opacity: 0.9;
+    opacity: 0.92;
+    transform: translateY(-1px);
   }
 
   .login-error {
@@ -90,7 +110,12 @@
 {% block content %}
 <div class="login-wrapper">
   <div class="login-card">
-    <h1 class="login-heading">Admin Access</h1>
+    <div class="login-logo">
+      <span class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2C8 7 4 10 4 14a8 8 0 0016 0c0-4-4-7-8-12z" fill="#fff"/></svg>
+      </span>
+      <h1 class="login-heading">Admin Access</h1>
+    </div>
     <form method="POST" action="/admin/login">
       <div class="form-group">
         <label class="form-label" for="password">Password</label>
