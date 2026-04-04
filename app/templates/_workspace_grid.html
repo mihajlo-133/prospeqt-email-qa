@@ -1,0 +1,41 @@
+{% if workspaces %}
+<div class="ws-grid" id="workspace-grid">
+  {% for ws in workspaces %}
+  <div class="ws-card">
+    <a href="/ws/{{ ws.name }}" class="ws-card-link" aria-label="{{ ws.name }}"></a>
+    <div class="ws-card-header">
+      <div class="ws-card-name">
+        <span class="health-dot health-dot--{{ ws.health }}"></span>
+        {{ ws.name }}
+      </div>
+      <button class="scan-btn-secondary"
+              hx-post="/api/scan/ws/{{ ws.name }}"
+              hx-target="#workspace-grid"
+              hx-swap="outerHTML"
+              onclick="event.stopPropagation()">
+        Scan
+      </button>
+    </div>
+    {% if ws.error %}
+    <div class="ws-card-meta" style="color: var(--red);">{{ ws.error }}</div>
+    {% else %}
+    <div class="ws-card-meta">
+      {% if ws.broken > 0 %}
+        {{ ws.pct }} broken ({{ ws.broken }} / {{ ws.total }} leads)
+      {% else %}
+        Clean
+      {% endif %}
+    </div>
+    <div class="ws-card-meta">{{ ws.campaign_count }} campaign{{ 's' if ws.campaign_count != 1 else '' }}</div>
+    {% endif %}
+    <div class="ws-card-meta freshness freshness--{{ ws.freshness_cls }}">{{ ws.freshness_txt }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state" id="workspace-grid">
+  <h2>No workspaces configured</h2>
+  <p>Add your first Instantly workspace in settings to start QA checking.</p>
+  <a href="/admin">Open Settings</a>
+</div>
+{% endif %}

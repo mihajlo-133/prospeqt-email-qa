@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Email QA — {{ ws_name }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .page-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .page-title { font-size: 20px; font-weight: 600; color: var(--tx1); }
+  .ws-summary { font-size: 14px; color: var(--tx2); margin-bottom: 32px; display: flex; align-items: center; gap: 8px; }
+
+  /* Campaign table card */
+  .table-card {
+    background: var(--bg-el);
+    border-radius: 8px;
+    box-shadow: var(--sh);
+    overflow: hidden;
+  }
+  .table-card-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--bd);
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  /* Campaign table */
+  .campaign-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .campaign-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--tx2);
+    border-bottom: 1px solid var(--bd);
+    white-space: nowrap;
+  }
+  .campaign-table td {
+    padding: 12px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--bd);
+    vertical-align: middle;
+  }
+  .campaign-table tr:last-child td { border-bottom: none; }
+  .campaign-table tr:hover td { background: var(--bg-hov); }
+  .campaign-table .camp-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+  }
+  .campaign-table .camp-name a {
+    color: var(--tx1);
+    text-decoration: none;
+  }
+  .campaign-table .camp-name a:hover { text-decoration: underline; }
+  .broken-count { color: var(--red); }
+  .broken-count--clean { color: var(--green); }
+  .vars-affected { font-size: 13px; color: var(--tx2); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Empty + not-scanned states */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--tx2);
+  }
+  .empty-state h2 { font-size: 18px; font-weight: 600; color: var(--tx1); margin-bottom: 8px; }
+  .empty-state p { font-size: 14px; }
+
+  /* Responsive: hide vars column on tablet, stack on mobile */
+  @media (max-width: 1023px) {
+    .col-vars { display: none; }
+  }
+  @media (max-width: 767px) {
+    .campaign-table thead { display: none; }
+    .campaign-table tr {
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      border-bottom: 1px solid var(--bd);
+    }
+    .campaign-table td {
+      padding: 4px 0;
+      border-bottom: none;
+    }
+    .campaign-table td::before {
+      content: attr(data-label);
+      font-size: 12px;
+      color: var(--tx2);
+      display: block;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="breadcrumb-bar">
+  <a href="/">All Workspaces</a>
+  <span class="breadcrumb-sep">&gt;</span>
+  <span class="breadcrumb-current">{{ ws_name }}</span>
+</div>
+
+<div class="page-shell">
+  <div class="page-header-row">
+    <h1 class="page-title">{{ ws_name }}</h1>
+    <button class="scan-btn-secondary"
+            hx-post="/api/scan/ws/{{ ws_name }}"
+            hx-target="#campaign-table"
+            hx-swap="outerHTML">
+      Scan Workspace
+    </button>
+  </div>
+
+  {% if not not_scanned %}
+  <div class="ws-summary">
+    <span class="health-dot health-dot--{{ ws_health }}"></span>
+    {% if ws_broken > 0 %}
+      {{ ws_broken }} broken lead{{ 's' if ws_broken != 1 else '' }} across {{ campaigns|length }} campaign{{ 's' if campaigns|length != 1 else '' }}
+    {% else %}
+      All clean across {{ campaigns|length }} campaign{{ 's' if campaigns|length != 1 else '' }}
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% include "_campaign_table.html" %}
+</div>
+{% endblock %}

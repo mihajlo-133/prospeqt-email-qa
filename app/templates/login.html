@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Access — Email QA{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .login-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 64px);
+    padding: 24px;
+  }
+
+  .login-card {
+    background: var(--bg-el);
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    padding: 32px;
+    width: 100%;
+    max-width: 360px;
+    box-shadow: var(--sh-md);
+  }
+
+  .login-heading {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--tx1);
+    margin-bottom: 24px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+  }
+
+  .form-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--tx2);
+    margin-bottom: 6px;
+  }
+
+  .form-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--bd);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--tx1);
+    outline: none;
+    transition: border-color var(--transition);
+  }
+
+  .form-input:focus {
+    border-color: var(--blue);
+  }
+
+  .btn-primary {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    transition: opacity var(--transition);
+  }
+
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+
+  .login-error {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--red);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+  <div class="login-card">
+    <h1 class="login-heading">Admin Access</h1>
+    <form method="POST" action="/admin/login">
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input
+          class="form-input"
+          type="password"
+          id="password"
+          name="password"
+          autocomplete="current-password"
+          autofocus
+          required
+        >
+      </div>
+      <button class="btn-primary" type="submit">Sign In</button>
+      {% if error %}
+      <p class="login-error">{{ error }}</p>
+      {% endif %}
+    </form>
+  </div>
+</div>
+{% endblock %}
