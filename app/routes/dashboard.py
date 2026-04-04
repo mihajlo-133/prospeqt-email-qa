@@ -185,10 +185,8 @@ async def health():
 # ---------------------------------------------------------------------------
 
 
-@router.post("/api/scan/all", response_class=HTMLResponse)
-async def scan_all(request: Request):
-    """Trigger QA across all workspaces and return refreshed workspace grid. Per OPS-01, D-16."""
-    await trigger_qa_all()
+async def _build_workspace_grid_response(request: Request):
+    """Build the workspace grid partial response (shared by scan_all and per-ws scan)."""
     data = await get_cache().get_all()
     cached_names = {ws.workspace_name for ws in data.workspaces}
     ws_display = []
@@ -205,7 +203,6 @@ async def scan_all(request: Request):
             "freshness_txt": freshness_text(ws.last_checked),
             "error": ws.error,
         })
-    # Include registered workspaces not yet in cache (same as overview route)
     for ws_info in list_workspaces():
         if ws_info["name"] not in cached_names:
             ws_display.append({
@@ -223,6 +220,13 @@ async def scan_all(request: Request):
         "workspaces": ws_display,
         "ws_count": len(ws_display),
     })
+
+
+@router.post("/api/scan/all", response_class=HTMLResponse)
+async def scan_all(request: Request):
+    """Trigger QA across all workspaces and return refreshed workspace grid. Per OPS-01, D-16."""
+    await trigger_qa_all()
+    return await _build_workspace_grid_response(request)
 
 
 # ---------------------------------------------------------------------------
@@ -345,8 +349,15 @@ async def scan_campaign(request: Request, ws_name: str, campaign_id: str):
 
 @router.post("/api/scan/ws/{ws_name}", response_class=HTMLResponse)
 async def scan_workspace(request: Request, ws_name: str):
-    """Trigger QA for one workspace and return refreshed campaign table. Per OPS-02, D-16."""
+    """Trigger QA for one workspace and return refreshed partial. Per OPS-02, D-16."""
     await trigger_qa_workspace(ws_name)
+
+    # If called from overview page (hx-target is workspace-grid), return full grid
+    hx_target = request.headers.get("hx-target", "")
+    if hx_target == "workspace-grid":
+        return await _build_workspace_grid_response(request)
+
+    # Otherwise return campaign table partial (workspace detail page)
     result = await get_cache().get_workspace(ws_name)
     campaigns_display = []
     if result:
