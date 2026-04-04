@@ -8,6 +8,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.services.cache import get_cache
 from app.services.poller import trigger_qa_all, trigger_qa_campaign, trigger_qa_workspace
+from app.services.workspace import list_workspaces
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
@@ -77,7 +78,6 @@ def total_leads_for_workspace(ws) -> int:
 @router.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
     """Overview page: all workspaces with health status. Per VIEW-01, D-04/D-05/D-06."""
-    from app.services.workspace import list_workspaces
     data = await get_cache().get_all()
     # Build a set of workspace names that have cache data
     cached_names = {ws.workspace_name for ws in data.workspaces}
@@ -189,8 +189,8 @@ async def health():
 async def scan_all(request: Request):
     """Trigger QA across all workspaces and return refreshed workspace grid. Per OPS-01, D-16."""
     await trigger_qa_all()
-    # Return current cached state — scan runs async in background
     data = await get_cache().get_all()
+    cached_names = {ws.workspace_name for ws in data.workspaces}
     ws_display = []
     for ws in data.workspaces:
         ws_total = total_leads_for_workspace(ws)
@@ -205,6 +205,20 @@ async def scan_all(request: Request):
             "freshness_txt": freshness_text(ws.last_checked),
             "error": ws.error,
         })
+    # Include registered workspaces not yet in cache (same as overview route)
+    for ws_info in list_workspaces():
+        if ws_info["name"] not in cached_names:
+            ws_display.append({
+                "name": ws_info["name"],
+                "broken": 0,
+                "total": 0,
+                "health": "not-scanned",
+                "pct": 0,
+                "campaign_count": 0,
+                "freshness_cls": "stale",
+                "freshness_txt": "Not scanned",
+                "error": None,
+            })
     return templates.TemplateResponse(request, "_workspace_grid.html", {
         "workspaces": ws_display,
         "ws_count": len(ws_display),

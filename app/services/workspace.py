@@ -3,6 +3,17 @@ import re
 
 WORKSPACE_ENV_PATTERN = re.compile(r'^WORKSPACE_([A-Z0-9_]+)_API_KEY$')
 
+# Map env var slugs to proper display names (matching campaign monitoring dashboard)
+DISPLAY_NAMES = {
+    "MYPLACE": "MyPlace",
+    "SWISHFUNDING": "SwishFunding",
+    "SMARTMATCHAPP": "SmartMatchApp",
+    "KAYSE": "Kayse",
+    "PROSPERLY": "Prosperly",
+    "HEYREACH": "HeyReach",
+    "ENAVRA": "Enavra",
+}
+
 _registry: dict[str, str] = {}
 
 
@@ -14,8 +25,8 @@ def load_from_env() -> None:
         match = WORKSPACE_ENV_PATTERN.match(key)
         if match and value:
             raw_name = match.group(1)
-            # Transform: ENAVRA -> enavra, HEYREACH_CLIENT -> heyreach-client
-            display_name = raw_name.lower().replace("_", "-")
+            # Use proper display name if known, otherwise title-case the slug
+            display_name = DISPLAY_NAMES.get(raw_name, raw_name.replace("_", " ").title())
             _registry[display_name] = value
 
 
@@ -28,23 +39,36 @@ def list_workspaces() -> list[dict]:
     return result
 
 
+def _resolve_name(name: str) -> str | None:
+    """Find the registry key matching name (case-insensitive)."""
+    if name in _registry:
+        return name
+    name_lower = name.lower()
+    for key in _registry:
+        if key.lower() == name_lower:
+            return key
+    return None
+
+
 def get_api_key(name: str) -> str | None:
-    """Return the API key for the given workspace name, or None if not found."""
-    return _registry.get(name)
+    """Return the API key for the given workspace name (case-insensitive), or None."""
+    resolved = _resolve_name(name)
+    return _registry[resolved] if resolved else None
 
 
 def add_workspace(name: str, api_key: str) -> None:
     """Add or update a workspace in the registry and set the corresponding env var."""
     _registry[name] = api_key
-    env_var_name = f"WORKSPACE_{name.upper().replace('-', '_')}_API_KEY"
+    env_var_name = f"WORKSPACE_{name.upper().replace('-', '_').replace(' ', '_')}_API_KEY"
     os.environ[env_var_name] = api_key
 
 
 def remove_workspace(name: str) -> bool:
     """Remove a workspace from the registry. Returns True if it existed, False otherwise."""
-    if name not in _registry:
+    resolved = _resolve_name(name)
+    if resolved is None:
         return False
-    del _registry[name]
-    env_var_name = f"WORKSPACE_{name.upper().replace('-', '_')}_API_KEY"
+    del _registry[resolved]
+    env_var_name = f"WORKSPACE_{resolved.upper().replace('-', '_').replace(' ', '_')}_API_KEY"
     os.environ.pop(env_var_name, None)
     return True
