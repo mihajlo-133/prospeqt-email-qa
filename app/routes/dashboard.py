@@ -234,8 +234,8 @@ async def scan_all(request: Request, background_tasks: BackgroundTasks):
 
 @router.get("/api/workspace-grid", response_class=HTMLResponse)
 async def workspace_grid_partial(request: Request):
-    """Return the workspace grid partial for HTMX polling."""
-    return await _build_workspace_grid_response(request)
+    """Return the workspace grid partial for HTMX polling. Keeps polling if unscanned workspaces remain."""
+    return await _build_workspace_grid_response(request, polling=True)
 
 
 # ---------------------------------------------------------------------------
