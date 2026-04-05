@@ -34,8 +34,8 @@ def test_load_from_env_reads_workspace_vars(mock_env):
     load_from_env()
     workspaces = list_workspaces()
     names = [w["name"] for w in workspaces]
-    assert "testclient" in names
-    assert "another-ws" in names
+    assert "Testclient" in names
+    assert "Another Ws" in names
     assert len(workspaces) == 2
 
 

@@ -93,6 +93,16 @@ def _prune_done_scans() -> None:
         del _running_scans[k]
 
 
+def get_scanning_workspace_names() -> set[str]:
+    """Return set of workspace names that have an in-flight scan."""
+    _prune_done_scans()
+    names = set()
+    for key, task in _running_scans.items():
+        if key.startswith("workspace:") and not task.done():
+            names.add(key.removeprefix("workspace:"))
+    return names
+
+
 # ---------------------------------------------------------------------------
 # Background QA jobs (called by asyncio.create_task)
 # ---------------------------------------------------------------------------

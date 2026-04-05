@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app.services.cache import get_cache
-from app.services.poller import trigger_qa_all, trigger_qa_campaign, trigger_qa_workspace
+from app.services.poller import get_scanning_workspace_names, trigger_qa_all, trigger_qa_campaign, trigger_qa_workspace
 from app.services.workspace import list_workspaces
 
 router = APIRouter()
@@ -205,8 +205,19 @@ async def health():
 # ---------------------------------------------------------------------------
 
 
-async def _build_workspace_grid_response(request: Request, polling: bool = False):
-    """Build the workspace grid partial response. If polling=True, grid auto-refreshes until data arrives."""
+async def _build_workspace_grid_response(
+    request: Request,
+    polling: bool = False,
+    scanning_names: set | None = None,
+):
+    """Build the workspace grid partial response.
+
+    Args:
+        polling: If True, grid auto-refreshes via HTMX until scanned workspaces arrive.
+        scanning_names: Set of workspace names currently being scanned.
+            Only these show the "Scanning..." animation. If None and polling=True,
+            all not-scanned workspaces are treated as scanning (scan-all behavior).
+    """
     data = await get_cache().get_all()
     cached_names = {ws.workspace_name for ws in data.workspaces}
     ws_display = []
@@ -238,12 +249,25 @@ async def _build_workspace_grid_response(request: Request, polling: bool = False
             })
     # Sort alphabetically for stable order across refreshes
     ws_display.sort(key=lambda w: w["name"].lower())
-    # Enable polling when scan was just triggered and some workspaces lack data
-    has_not_scanned = any(w["health"] == "not-scanned" for w in ws_display)
+
+    # Determine which workspaces are actively scanning
+    if scanning_names is None and polling:
+        # scan-all: every not-scanned workspace is scanning
+        active_scanning = {w["name"] for w in ws_display if w["health"] == "not-scanned"}
+    elif scanning_names:
+        active_scanning = scanning_names
+    else:
+        active_scanning = set()
+
+    # Mark each workspace individually
+    for ws in ws_display:
+        ws["scanning"] = ws["name"] in active_scanning
+
+    has_scanning = bool(active_scanning)
     return templates.TemplateResponse(request, "_workspace_grid.html", {
         "workspaces": ws_display,
         "ws_count": len(ws_display),
-        "polling": polling and has_not_scanned,
+        "polling": polling and has_scanning,
     })
 
 
@@ -256,8 +280,11 @@ async def scan_all(request: Request, background_tasks: BackgroundTasks):
 
 @router.get("/api/workspace-grid", response_class=HTMLResponse)
 async def workspace_grid_partial(request: Request):
-    """Return the workspace grid partial for HTMX polling. Keeps polling if unscanned workspaces remain."""
-    return await _build_workspace_grid_response(request, polling=True)
+    """Return the workspace grid partial for HTMX polling. Only shows scanning for workspaces with in-flight scans."""
+    active = get_scanning_workspace_names()
+    return await _build_workspace_grid_response(
+        request, polling=bool(active), scanning_names=active,
+    )
 
 
 @router.get("/api/ws-campaigns/{ws_name}", response_class=HTMLResponse)
@@ -389,7 +416,9 @@ async def scan_workspace(request: Request, ws_name: str, background_tasks: Backg
     # If called from overview page (hx-target is workspace-grid), return full grid
     hx_target = request.headers.get("hx-target", "")
     if hx_target == "workspace-grid":
-        return await _build_workspace_grid_response(request, polling=True)
+        return await _build_workspace_grid_response(
+            request, polling=True, scanning_names={ws_name},
+        )
 
     # Otherwise return campaign table partial (workspace detail page)
     return await _build_campaign_table_response(request, ws_name, polling=True)

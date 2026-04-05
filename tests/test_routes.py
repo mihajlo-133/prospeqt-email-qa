@@ -110,7 +110,7 @@ async def test_health_class_thresholds():
     assert health_class(10, 100) == "yellow"    # 10% in 2-10%
     assert health_class(11, 100) == "red"       # 11% > 10%
     assert health_class(50, 100) == "red"       # 50% > 10%
-    assert health_class(0, 0) == "gray"         # no data
+    assert health_class(0, 0) == "green"        # no leads = clean
 
 
 async def test_freshness_class_thresholds():
