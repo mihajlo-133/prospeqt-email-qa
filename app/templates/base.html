@@ -288,6 +288,32 @@
     .dot-green { background: var(--green); }
     .dot-muted { background: var(--tx3); }
 
+    /* Scanning card state */
+    .ws-card.scanning {
+      border-color: var(--blue);
+      box-shadow: inset 4px 0 0 var(--blue), var(--sh);
+      background: linear-gradient(90deg, var(--bg-el) 0%, rgba(39,86,247,.03) 50%, var(--bg-el) 100%);
+      background-size: 200% 100%;
+      animation: scan-shimmer 2s ease-in-out infinite;
+    }
+    @keyframes scan-shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .scan-card-spinner {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+    }
+    .pill-scanning {
+      background: var(--blue-bg, rgba(39,86,247,.08));
+      color: var(--blue);
+      border: 1px solid rgba(39,86,247,.15);
+    }
+
     /* Scan progress banner */
     .scan-banner {
       display: flex;
