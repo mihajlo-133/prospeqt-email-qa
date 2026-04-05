@@ -426,8 +426,13 @@ async def _build_campaign_table_response(request: Request, ws_name: str, polling
             "freshness_cls": freshness_class(c.last_checked),
             "freshness_txt": freshness_text(c.last_checked),
         })
+    # Keep polling active until data is fresh (< 30s old means scan just completed)
+    from datetime import datetime, timezone
+    newest = max((c.last_checked for c in result.campaigns if c.last_checked), default=None)
+    is_fresh = newest and (datetime.now(timezone.utc) - newest).total_seconds() < 30
     return templates.TemplateResponse(request, "_campaign_table.html", {
         "ws_name": ws_name,
         "campaigns": campaigns_display,
         "not_scanned": False,
+        "polling": polling and not is_fresh,
     })
