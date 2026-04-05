@@ -416,8 +416,11 @@ async def scan_workspace(request: Request, ws_name: str, background_tasks: Backg
     # If called from overview page (hx-target is workspace-grid), return full grid
     hx_target = request.headers.get("hx-target", "")
     if hx_target == "workspace-grid":
+        # Include all in-flight scans so clicking multiple Scan buttons
+        # keeps the animation on all of them, not just the latest click.
+        active = get_scanning_workspace_names() | {ws_name}
         return await _build_workspace_grid_response(
-            request, polling=True, scanning_names={ws_name},
+            request, polling=True, scanning_names=active,
         )
 
     # Otherwise return campaign table partial (workspace detail page)
