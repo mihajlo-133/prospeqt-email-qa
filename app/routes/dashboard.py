@@ -22,8 +22,10 @@ LEAD_STATUS_LABELS = {1: "Active", 2: "Paused", 3: "Completed", -1: "Bounced"}
 
 def health_class(broken: int, total: int) -> str:
     """Return CSS modifier class for traffic light dot. Per D-08/D-09."""
+    if broken == 0:
+        return "green"
     if total == 0:
-        return "gray"
+        return "green"
     pct = broken / total
     if pct < 0.02:
         return "green"
