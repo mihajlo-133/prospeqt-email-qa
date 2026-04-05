@@ -389,7 +389,7 @@ async def scan_workspace(request: Request, ws_name: str, background_tasks: Backg
     # If called from overview page (hx-target is workspace-grid), return full grid
     hx_target = request.headers.get("hx-target", "")
     if hx_target == "workspace-grid":
-        return await _build_workspace_grid_response(request)
+        return await _build_workspace_grid_response(request, polling=True)
 
     # Otherwise return campaign table partial (workspace detail page)
     return await _build_campaign_table_response(request, ws_name, polling=True)
