@@ -358,9 +358,8 @@
     <div class="topbar-actions">
       <button class="scan-btn-primary"
               hx-post="/api/scan/all"
-              hx-target="#workspace-grid"
-              hx-swap="outerHTML"
-
+              hx-target="body"
+              hx-swap="none"
               hx-indicator=".scan-all-spinner">
         <span class="scan-all-spinner htmx-indicator">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin-icon">

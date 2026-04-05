@@ -286,9 +286,12 @@ async def _build_workspace_grid_response(
 
 @router.post("/api/scan/all", response_class=HTMLResponse)
 async def scan_all(request: Request, background_tasks: BackgroundTasks):
-    """Trigger QA across all workspaces and return grid immediately. Scan runs in background."""
+    """Trigger QA across all workspaces and redirect to overview to show scan progress."""
     background_tasks.add_task(trigger_qa_all)
-    return await _build_workspace_grid_response(request, polling=True)
+    from fastapi.responses import Response
+    response = Response(status_code=200)
+    response.headers["HX-Redirect"] = "/"
+    return response
 
 
 @router.get("/api/workspace-grid", response_class=HTMLResponse)

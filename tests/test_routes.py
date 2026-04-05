@@ -90,7 +90,7 @@ async def test_workspace_page_has_campaign_table(mock_env):
 
 
 async def test_scan_all_endpoint(mock_env):
-    """POST /api/scan/all returns HTML (partial). Per OPS-01."""
+    """POST /api/scan/all triggers scan and redirects to overview. Per OPS-01."""
     from app.main import create_app
     from app.services import workspace as ws_module
     ws_module.load_from_env()
@@ -98,7 +98,7 @@ async def test_scan_all_endpoint(mock_env):
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post("/api/scan/all")
     assert response.status_code == 200
-    assert "text/html" in response.headers.get("content-type", "")
+    assert response.headers.get("hx-redirect") == "/"
 
 
 async def test_health_class_thresholds():
