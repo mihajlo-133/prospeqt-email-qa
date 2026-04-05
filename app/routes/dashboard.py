@@ -114,6 +114,12 @@ async def dashboard(request: Request):
     # Sort alphabetically for stable order across refreshes
     ws_display.sort(key=lambda w: w["name"].lower())
 
+    # Check for in-flight scans so the grid shows scanning state on initial load
+    scanning_now = get_scanning_workspace_names()
+    for ws in ws_display:
+        ws["scanning"] = ws["name"] in scanning_now
+    has_scanning = bool(scanning_now)
+
     # Aggregate stats for summary chips
     red_count = sum(1 for w in ws_display if w["health"] == "red")
     amber_count = sum(1 for w in ws_display if w["health"] == "yellow")
@@ -129,6 +135,7 @@ async def dashboard(request: Request):
         "green_count": green_count,
         "total_campaigns": total_campaigns,
         "total_broken": total_broken,
+        "polling": has_scanning,
     })
 
 
@@ -163,6 +170,7 @@ async def workspace_detail(request: Request, ws_name: str):
             "not_scanned": True,
             "sidebar_workspaces": sidebar_ws,
             "ws_scanning": current_ws_scanning,
+            "polling": current_ws_scanning,
         })
     ws_total = total_leads_for_workspace(result)
     campaigns_display = []
@@ -196,6 +204,7 @@ async def workspace_detail(request: Request, ws_name: str):
         "not_scanned": False,
         "sidebar_workspaces": sidebar_ws,
         "ws_scanning": current_ws_scanning,
+        "polling": current_ws_scanning,
     })
 
 
