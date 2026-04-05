@@ -146,6 +146,29 @@
   .ws-sidebar-dot--red { background: var(--red); }
   .ws-sidebar-dot--gray { background: var(--tx3); }
   .ws-sidebar-dot--not-scanned { background: var(--bd); }
+  .ws-sidebar-dot--scanning {
+    background: var(--blue);
+    animation: pulse-dot 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .4; transform: scale(.7); }
+  }
+  .ws-sidebar-item .sidebar-spin {
+    width: 14px; height: 14px; flex-shrink: 0;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ws-scan-banner {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px; margin-bottom: 16px;
+    border-radius: var(--radius-md);
+    background: var(--blue-bg, rgba(39,86,247,.08));
+    border: 1px solid var(--blue, #2756f7);
+    color: var(--blue, #2756f7);
+    font-size: 13px; font-weight: 500;
+  }
+  .ws-scan-banner .spin-icon { animation: spin .8s linear infinite; }
 
   .ws-main { padding: 24px; }
 
@@ -191,7 +214,11 @@
     <div class="ws-sidebar-title">Workspaces</div>
     {% for sw in sidebar_workspaces %}
     <a href="/ws/{{ sw.name }}" class="ws-sidebar-item {{ 'active' if sw.active else '' }}">
+      {% if sw.scanning %}
+      <svg class="sidebar-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+      {% else %}
       <span class="ws-sidebar-dot ws-sidebar-dot--{{ sw.health }}"></span>
+      {% endif %}
       {{ sw.name }}
     </a>
     {% endfor %}
@@ -212,6 +239,13 @@
         Scan Workspace
       </button>
     </div>
+
+    {% if ws_scanning is defined and ws_scanning %}
+    <div class="ws-scan-banner">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+      Scanning {{ ws_name }} — results will appear automatically...
+    </div>
+    {% endif %}
 
     {% if not not_scanned %}
     <div class="ws-summary">

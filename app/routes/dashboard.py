@@ -135,19 +135,21 @@ async def dashboard(request: Request):
 @router.get("/ws/{ws_name}", response_class=HTMLResponse)
 async def workspace_detail(request: Request, ws_name: str):
     """Workspace detail page: campaign table. Per VIEW-02, VIEW-05, VIEW-06, D-03."""
-    # Build sidebar workspace list with health status
+    # Build sidebar workspace list with health + scanning status
     all_data = await get_cache().get_all()
     cached_map = {ws.workspace_name: ws for ws in all_data.workspaces}
+    scanning_now = get_scanning_workspace_names()
     sidebar_ws = []
     for ws_info in list_workspaces():
         name = ws_info["name"]
         ws_obj = cached_map.get(name)
         if ws_obj:
             ws_t = total_leads_for_workspace(ws_obj)
-            sidebar_ws.append({"name": name, "health": health_class(ws_obj.total_broken, ws_t), "active": name == ws_name})
+            sidebar_ws.append({"name": name, "health": health_class(ws_obj.total_broken, ws_t), "active": name == ws_name, "scanning": name in scanning_now})
         else:
-            sidebar_ws.append({"name": name, "health": "not-scanned", "active": name == ws_name})
+            sidebar_ws.append({"name": name, "health": "not-scanned", "active": name == ws_name, "scanning": name in scanning_now})
     sidebar_ws.sort(key=lambda w: w["name"].lower())
+    current_ws_scanning = ws_name in scanning_now
 
     result = cached_map.get(ws_name)
     if result is None:
@@ -160,6 +162,7 @@ async def workspace_detail(request: Request, ws_name: str):
             "ws_pct": "0%",
             "not_scanned": True,
             "sidebar_workspaces": sidebar_ws,
+            "ws_scanning": current_ws_scanning,
         })
     ws_total = total_leads_for_workspace(result)
     campaigns_display = []
@@ -192,6 +195,7 @@ async def workspace_detail(request: Request, ws_name: str):
         "ws_pct": health_pct(result.total_broken, ws_total),
         "not_scanned": False,
         "sidebar_workspaces": sidebar_ws,
+        "ws_scanning": current_ws_scanning,
     })
 
 
