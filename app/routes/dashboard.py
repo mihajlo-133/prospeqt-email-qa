@@ -109,6 +109,9 @@ async def dashboard(request: Request):
                 "freshness_txt": "Not scanned",
                 "error": None,
             })
+    # Sort alphabetically for stable order across refreshes
+    ws_display.sort(key=lambda w: w["name"].lower())
+
     # Aggregate stats for summary chips
     red_count = sum(1 for w in ws_display if w["health"] == "red")
     amber_count = sum(1 for w in ws_display if w["health"] == "yellow")
@@ -130,9 +133,22 @@ async def dashboard(request: Request):
 @router.get("/ws/{ws_name}", response_class=HTMLResponse)
 async def workspace_detail(request: Request, ws_name: str):
     """Workspace detail page: campaign table. Per VIEW-02, VIEW-05, VIEW-06, D-03."""
-    result = await get_cache().get_workspace(ws_name)
+    # Build sidebar workspace list with health status
+    all_data = await get_cache().get_all()
+    cached_map = {ws.workspace_name: ws for ws in all_data.workspaces}
+    sidebar_ws = []
+    for ws_info in list_workspaces():
+        name = ws_info["name"]
+        ws_obj = cached_map.get(name)
+        if ws_obj:
+            ws_t = total_leads_for_workspace(ws_obj)
+            sidebar_ws.append({"name": name, "health": health_class(ws_obj.total_broken, ws_t), "active": name == ws_name})
+        else:
+            sidebar_ws.append({"name": name, "health": "not-scanned", "active": name == ws_name})
+    sidebar_ws.sort(key=lambda w: w["name"].lower())
+
+    result = cached_map.get(ws_name)
     if result is None:
-        # Workspace not yet scanned — render empty state with scan button
         return templates.TemplateResponse(request, "workspace.html", {
             "ws_name": ws_name,
             "campaigns": [],
@@ -141,6 +157,7 @@ async def workspace_detail(request: Request, ws_name: str):
             "ws_health": "gray",
             "ws_pct": "0%",
             "not_scanned": True,
+            "sidebar_workspaces": sidebar_ws,
         })
     ws_total = total_leads_for_workspace(result)
     campaigns_display = []
@@ -172,6 +189,7 @@ async def workspace_detail(request: Request, ws_name: str):
         "ws_health": health_class(result.total_broken, ws_total),
         "ws_pct": health_pct(result.total_broken, ws_total),
         "not_scanned": False,
+        "sidebar_workspaces": sidebar_ws,
     })
 
 
@@ -216,6 +234,8 @@ async def _build_workspace_grid_response(request: Request, polling: bool = False
                 "freshness_txt": "Not scanned",
                 "error": None,
             })
+    # Sort alphabetically for stable order across refreshes
+    ws_display.sort(key=lambda w: w["name"].lower())
     # Enable polling when scan was just triggered and some workspaces lack data
     has_not_scanned = any(w["health"] == "not-scanned" for w in ws_display)
     return templates.TemplateResponse(request, "_workspace_grid.html", {
@@ -236,6 +256,12 @@ async def scan_all(request: Request, background_tasks: BackgroundTasks):
 async def workspace_grid_partial(request: Request):
     """Return the workspace grid partial for HTMX polling. Keeps polling if unscanned workspaces remain."""
     return await _build_workspace_grid_response(request, polling=True)
+
+
+@router.get("/api/ws-campaigns/{ws_name}", response_class=HTMLResponse)
+async def workspace_campaigns_partial(request: Request, ws_name: str):
+    """Return campaign table partial for HTMX polling on workspace detail page."""
+    return await _build_campaign_table_response(request, ws_name, polling=True)
 
 
 # ---------------------------------------------------------------------------
@@ -364,29 +390,40 @@ async def scan_workspace(request: Request, ws_name: str, background_tasks: Backg
         return await _build_workspace_grid_response(request)
 
     # Otherwise return campaign table partial (workspace detail page)
+    return await _build_campaign_table_response(request, ws_name, polling=True)
+
+
+async def _build_campaign_table_response(request: Request, ws_name: str, polling: bool = False):
+    """Build campaign table partial for a workspace. Polling adds auto-refresh."""
     result = await get_cache().get_workspace(ws_name)
+    if result is None:
+        return templates.TemplateResponse(request, "_campaign_table.html", {
+            "ws_name": ws_name,
+            "campaigns": [],
+            "not_scanned": True,
+            "polling": polling,
+        })
     campaigns_display = []
-    if result:
-        for c in result.campaigns:
-            affected_vars = list(c.issues_by_variable.keys())
-            if len(affected_vars) > 2:
-                var_text = ", ".join(affected_vars[:2]) + f" +{len(affected_vars) - 2} more"
-            elif affected_vars:
-                var_text = ", ".join(affected_vars)
-            else:
-                var_text = ""
-            campaigns_display.append({
-                "id": c.campaign_id,
-                "name": c.campaign_name,
-                "status": "active" if c.total_leads > 0 else "draft",
-                "broken": c.broken_count,
-                "total": c.total_leads,
-                "health": health_class(c.broken_count, c.total_leads),
-                "pct": health_pct(c.broken_count, c.total_leads),
-                "var_text": var_text,
-                "freshness_cls": freshness_class(c.last_checked),
-                "freshness_txt": freshness_text(c.last_checked),
-            })
+    for c in result.campaigns:
+        affected_vars = list(c.issues_by_variable.keys())
+        if len(affected_vars) > 2:
+            var_text = ", ".join(affected_vars[:2]) + f" +{len(affected_vars) - 2} more"
+        elif affected_vars:
+            var_text = ", ".join(affected_vars)
+        else:
+            var_text = ""
+        campaigns_display.append({
+            "id": c.campaign_id,
+            "name": c.campaign_name,
+            "status": "active" if c.total_leads > 0 else "draft",
+            "broken": c.broken_count,
+            "total": c.total_leads,
+            "health": health_class(c.broken_count, c.total_leads),
+            "pct": health_pct(c.broken_count, c.total_leads),
+            "var_text": var_text,
+            "freshness_cls": freshness_class(c.last_checked),
+            "freshness_txt": freshness_text(c.last_checked),
+        })
     return templates.TemplateResponse(request, "_campaign_table.html", {
         "ws_name": ws_name,
         "campaigns": campaigns_display,

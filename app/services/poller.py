@@ -67,7 +67,7 @@ async def discovery_poll() -> None:
         logger.debug("No workspaces configured — skipping discovery poll")
         return
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=60.0) as client:
         await asyncio.gather(
             *[_discover_workspace(client, ws["name"]) for ws in workspaces],
             return_exceptions=True,
@@ -105,7 +105,7 @@ async def _run_workspace_qa_job(ws_name: str) -> None:
         logger.warning("No API key for workspace %s — skipping QA job", ws_name)
         return
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             result = await run_workspace_qa(client, api_key, ws_name)
             await get_cache().set_workspace(ws_name, result)
         logger.info("QA complete for workspace %s: %d broken leads", ws_name, result.total_broken)
@@ -121,7 +121,7 @@ async def _run_campaign_qa_job(campaign_id: str, campaign: dict, ws_name: str) -
         logger.warning("No API key for workspace %s — skipping campaign QA job", ws_name)
         return
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             result = await run_campaign_qa(client, api_key, campaign, ws_name)
 
         # Merge updated campaign result into existing workspace result (if any)

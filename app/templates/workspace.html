@@ -87,11 +87,76 @@
   .empty-state h2 { font-size: 18px; font-weight: 600; color: var(--tx1); margin-bottom: 8px; }
   .empty-state p { font-size: 14px; }
 
-  /* Responsive: hide vars column on tablet, stack on mobile */
+  /* Sidebar + main layout */
+  .ws-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 64px - 45px);
+  }
+  .ws-sidebar {
+    background: var(--bg-el);
+    border-right: 1px solid var(--bd);
+    padding: 16px 0;
+    position: sticky;
+    top: 109px;
+    height: fit-content;
+    max-height: calc(100vh - 109px);
+    overflow-y: auto;
+  }
+  .ws-sidebar-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--tx3);
+    font-family: 'Space Mono', monospace;
+    padding: 0 16px 12px;
+  }
+  .ws-sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--tx2);
+    text-decoration: none;
+    transition: background var(--transition), color var(--transition);
+    border-left: 3px solid transparent;
+  }
+  .ws-sidebar-item:hover {
+    background: var(--bg-hov);
+    color: var(--tx1);
+  }
+  .ws-sidebar-item.active {
+    background: var(--blue-bg, rgba(39,86,247,.08));
+    color: var(--blue);
+    border-left-color: var(--blue);
+    font-weight: 600;
+  }
+  .ws-sidebar-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .ws-sidebar-dot--green { background: var(--green); }
+  .ws-sidebar-dot--yellow { background: var(--amber); }
+  .ws-sidebar-dot--red { background: var(--red); }
+  .ws-sidebar-dot--gray { background: var(--tx3); }
+  .ws-sidebar-dot--not-scanned { background: var(--bd); }
+
+  .ws-main { padding: 24px; }
+
+  /* Responsive: hide vars column on tablet, collapse sidebar on mobile */
   @media (max-width: 1023px) {
     .col-vars { display: none; }
+    .ws-layout { grid-template-columns: 180px 1fr; }
   }
   @media (max-width: 767px) {
+    .ws-layout { grid-template-columns: 1fr; }
+    .ws-sidebar { display: none; }
     .campaign-table thead { display: none; }
     .campaign-table tr {
       display: flex;
@@ -120,37 +185,51 @@
   <span class="breadcrumb-current">{{ ws_name }}</span>
 </div>
 
-<div class="page-shell">
-  <div class="page-header-row">
-    <h1 class="page-title">{{ ws_name }}</h1>
-    <button class="scan-btn-secondary"
-            hx-post="/api/scan/ws/{{ ws_name }}"
-            hx-target="#campaign-table"
-            hx-swap="outerHTML">
-      Scan Workspace
-    </button>
-  </div>
-
-  {% if not not_scanned %}
-  <div class="ws-summary">
-    {% if ws_health == 'green' %}
-    <span class="pill pill-g">Clean</span>
-    {% elif ws_health == 'yellow' %}
-    <span class="pill pill-a">Watch</span>
-    {% elif ws_health == 'red' %}
-    <span class="pill pill-r">Action</span>
-    {% else %}
-    <span class="pill pill-m">Not Scanned</span>
-    {% endif %}
-    {% if ws_broken > 0 %}
-      <span style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;letter-spacing:-.03em;">{{ ws_broken }}</span>
-      <span>broken lead{{ 's' if ws_broken != 1 else '' }} across {{ campaigns|length }} campaign{{ 's' if campaigns|length != 1 else '' }}</span>
-    {% else %}
-      All clean across {{ campaigns|length }} campaign{{ 's' if campaigns|length != 1 else '' }}
-    {% endif %}
-  </div>
+<div class="ws-layout">
+  {% if sidebar_workspaces is defined and sidebar_workspaces %}
+  <nav class="ws-sidebar">
+    <div class="ws-sidebar-title">Workspaces</div>
+    {% for sw in sidebar_workspaces %}
+    <a href="/ws/{{ sw.name }}" class="ws-sidebar-item {{ 'active' if sw.active else '' }}">
+      <span class="ws-sidebar-dot ws-sidebar-dot--{{ sw.health }}"></span>
+      {{ sw.name }}
+    </a>
+    {% endfor %}
+  </nav>
   {% endif %}
 
-  {% include "_campaign_table.html" %}
+  <div class="ws-main">
+    <div class="page-header-row">
+      <h1 class="page-title">{{ ws_name }}</h1>
+      <button class="scan-btn-secondary"
+              hx-post="/api/scan/ws/{{ ws_name }}"
+              hx-target="#campaign-table"
+              hx-swap="outerHTML">
+        Scan Workspace
+      </button>
+    </div>
+
+    {% if not not_scanned %}
+    <div class="ws-summary">
+      {% if ws_health == 'green' %}
+      <span class="pill pill-g">Clean</span>
+      {% elif ws_health == 'yellow' %}
+      <span class="pill pill-a">Watch</span>
+      {% elif ws_health == 'red' %}
+      <span class="pill pill-r">Action</span>
+      {% else %}
+      <span class="pill pill-m">Not Scanned</span>
+      {% endif %}
+      {% if ws_broken > 0 %}
+        <span style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;letter-spacing:-.03em;">{{ ws_broken }}</span>
+        <span>broken lead{{ 's' if ws_broken != 1 else '' }} across {{ campaigns|length }} campaign{{ 's' if campaigns|length != 1 else '' }}</span>
+      {% else %}
+        All clean across {{ campaigns|length }} campaign{{ 's' if campaigns|length != 1 else '' }}
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% include "_campaign_table.html" %}
+  </div>
 </div>
 {% endblock %}

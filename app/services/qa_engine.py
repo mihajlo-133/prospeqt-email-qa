@@ -22,7 +22,8 @@ _RAW_PATTERN = re.compile(r"\{\{([^}]+)\}\}")
 
 # System variables that appear in campaign copy but are NOT lead payload fields.
 # RANDOM covers the spin syntax {{RANDOM | opt1 | opt2}} — filtered by pipe check first.
-_SYSTEM_VARS: FrozenSet[str] = frozenset(["RANDOM", "accountSignature"])
+# sendingAccountName is injected by Instantly (the sender's display name), not a lead field.
+_SYSTEM_VARS: FrozenSet[str] = frozenset(["RANDOM", "accountSignature", "sendingAccountName"])
 
 
 def extract_variables(copy_variants: list[dict]) -> set[str]:

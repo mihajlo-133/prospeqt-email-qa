@@ -288,6 +288,21 @@
     .dot-green { background: var(--green); }
     .dot-muted { background: var(--tx3); }
 
+    /* Scan progress banner */
+    .scan-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      border-radius: var(--radius);
+      background: var(--blue-bg, rgba(39,86,247,.08));
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid rgba(39,86,247,.15);
+    }
+
     /* Page shell per UI-SPEC */
     .page-shell {
       max-width: 1200px;
@@ -362,6 +377,14 @@
 
     document.body.addEventListener('htmx:responseError', function(evt) {
       showToast('Something went wrong. Refresh the page or try the scan again.', 'error');
+    });
+
+    // Show toast when scan buttons are clicked
+    document.body.addEventListener('htmx:beforeRequest', function(evt) {
+      var path = evt.detail.pathInfo && evt.detail.pathInfo.requestPath || '';
+      if (path.indexOf('/api/scan') === 0) {
+        showToast('Scan started — results will appear shortly...', 'success');
+      }
     });
 
   </script>

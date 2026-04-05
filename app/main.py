@@ -3,10 +3,12 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from app.services.auth import AdminAuthRedirect
 from app.services.poller import discovery_poll
 from app.services.workspace import load_from_env
 
@@ -60,6 +62,10 @@ def create_app() -> FastAPI:
     from app.routes import admin, dashboard
     application.include_router(dashboard.router)
     application.include_router(admin.router)
+
+    @application.exception_handler(AdminAuthRedirect)
+    async def admin_auth_redirect_handler(request: Request, exc: AdminAuthRedirect):
+        return RedirectResponse(url="/admin/login", status_code=303)
 
     return application
 
