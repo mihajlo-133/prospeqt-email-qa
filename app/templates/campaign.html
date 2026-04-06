@@ -10,7 +10,7 @@
     flex-wrap: wrap;
     margin-bottom: 16px;
   }
-  .page-title { font-size: 20px; font-weight: 700; color: var(--tx1); font-family: 'Space Grotesk', sans-serif; letter-spacing: -.02em; }
+  .page-title { font-size: 22px; font-weight: 700; color: var(--tx1); font-family: 'Inter', sans-serif; letter-spacing: -.02em; }
   .campaign-meta { font-size: 14px; color: var(--tx2); margin-bottom: 32px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 
   /* Variable summary block — KPI card style */
@@ -22,7 +22,7 @@
     padding: 24px;
     margin-bottom: 24px;
   }
-  .var-card-title { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--tx3); font-weight: 600; font-family: 'Space Mono', monospace; margin-bottom: 16px; }
+  .var-card-title { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--tx3); font-weight: 600; font-family: 'Inter', sans-serif; margin-bottom: 16px; }
   .var-row {
     display: flex;
     align-items: center;
@@ -35,13 +35,13 @@
     font-size: 13px;
     font-weight: 400;
     color: var(--tx1);
-    font-family: 'Space Mono', monospace;
+    font-family: 'Inter', sans-serif;
     background: var(--bg);
     padding: 2px 6px;
     border-radius: 4px;
     white-space: nowrap;
   }
-  .var-count { font-size: 13px; color: var(--tx2); white-space: nowrap; min-width: 110px; font-family: 'Space Mono', monospace; }
+  .var-count { font-size: 13px; color: var(--tx2); white-space: nowrap; min-width: 110px; font-family: 'Inter', sans-serif; }
   .var-bar-bg {
     flex: 1;
     height: 4px;
@@ -67,11 +67,11 @@
     align-items: center;
     gap: 12px;
   }
-  .table-card-title { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--tx3); font-weight: 600; font-family: 'Space Mono', monospace; }
+  .table-card-title { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--tx3); font-weight: 600; font-family: 'Inter', sans-serif; }
   .lead-count-badge {
     font-size: 13px;
-    background: rgba(195,57,57,0.1);
-    color: var(--red);
+    background: rgba(239,68,68,0.1);
+    color: var(--red-text);
     padding: 2px 8px;
     border-radius: 10px;
   }
@@ -90,8 +90,8 @@
     letter-spacing: .06em;
     color: var(--tx3);
     border-bottom: 1px solid var(--bd);
-    font-family: 'Space Mono', monospace;
-    background: var(--bg);
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-alt);
     white-space: nowrap;
   }
   .leads-table td {
@@ -102,14 +102,14 @@
     vertical-align: top;
     height: 52px;
   }
-  .leads-table td:first-child { font-family: 'Space Mono', monospace; font-size: 12px; }
+  .leads-table td:first-child { font-family: 'Inter', sans-serif; font-size: 12px; }
   .leads-table tr:last-child td { border-bottom: none; }
   .leads-table tr:hover td { background: var(--bg-hov); }
 
   .broken-var-list { display: flex; flex-direction: column; gap: 4px; }
   .broken-var-item { font-size: 13px; }
-  .broken-var-name { color: var(--tx3); font-family: 'Space Mono', monospace; font-size: 12px; }
-  .broken-var-value { color: var(--red); font-weight: 600; font-family: 'Space Mono', monospace; font-size: 12px; }
+  .broken-var-name { color: var(--tx3); font-family: 'Inter', sans-serif; font-size: 12px; }
+  .broken-var-value { color: var(--red); font-weight: 600; font-family: 'Inter', sans-serif; font-size: 12px; }
 
   /* Pagination per UI-SPEC */
   .pagination {
@@ -149,7 +149,7 @@
     padding: 48px 24px;
     color: var(--tx2);
   }
-  .clean-state h2 { font-size: 18px; font-weight: 600; color: var(--green); margin-bottom: 8px; }
+  .clean-state h2 { font-size: 18px; font-weight: 600; color: var(--green-text); margin-bottom: 8px; }
   .clean-state p { font-size: 14px; }
 
   .empty-state {
@@ -202,12 +202,12 @@
     {% else %}
     <span class="pill pill-m">Not Scanned</span>
     {% endif %}
-    <span style="font-family:'Space Mono',monospace;font-size:13px;">{{ total_leads }} total leads</span>
+    <span style="font-size:13px;">{{ total_leads }} total leads</span>
     {% if broken_count > 0 %}
-    <span style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;letter-spacing:-.03em;color:var(--red);">{{ broken_count }}</span>
+    <span style="font-size:24px;font-weight:700;letter-spacing:-.03em;color:var(--red);">{{ broken_count }}</span>
     <span>broken ({{ pct }})</span>
     {% endif %}
-    <span class="freshness freshness--{{ freshness_cls }}" style="font-family:'Space Mono',monospace;font-size:11px;">{{ freshness_txt }}</span>
+    <span class="freshness freshness--{{ freshness_cls }}" style="font-size:11px;">{{ freshness_txt }}</span>
   </div>
   {% endif %}
 

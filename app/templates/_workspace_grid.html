@@ -48,12 +48,12 @@
       <span class="pill pill-g">Clean</span>
       {% endif %}
       {% if ws.broken > 0 %}
-        <span style="font-family:'Space Mono',monospace;font-size:13px;">{{ ws.broken }} / {{ ws.total }}</span>
+        <span style="font-size:13px;">{{ ws.broken }} / {{ ws.total }}</span>
       {% endif %}
     </div>
     <div class="ws-card-meta">{{ ws.campaign_count }} campaign{{ 's' if ws.campaign_count != 1 else '' }}</div>
     {% endif %}
-    <div class="ws-card-meta freshness freshness--{{ ws.freshness_cls }}" style="font-family:'Space Mono',monospace;font-size:11px;">{{ ws.freshness_txt }}</div>
+    <div class="ws-card-meta freshness freshness--{{ ws.freshness_cls }}" style="font-size:11px;">{{ ws.freshness_txt }}</div>
   </div>
   {% endfor %}
   </div>
