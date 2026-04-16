@@ -349,6 +349,57 @@
     .freshness--green { color: var(--green-text); }
     .freshness--amber { color: var(--amber-text); }
     .freshness--gray { color: var(--tx3); }
+
+    /* Prospeqt tool switcher — shared component across tools */
+    .tool-switcher { position: relative; display: inline-flex; }
+    .tool-switcher-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; padding: 0;
+      background: transparent; border: 1px solid var(--bd); border-radius: 8px;
+      color: var(--tx2); cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .tool-switcher-btn:hover { background: var(--bg-hov); color: var(--tx1); border-color: var(--bd-s); }
+    .tool-switcher-btn[aria-expanded="true"] { background: var(--blue-bg); color: var(--blue); border-color: var(--blue); }
+    .tool-switcher-menu {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      min-width: 280px;
+      background: var(--bg-el); border: 1px solid var(--bd); border-radius: 12px;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.1);
+      padding: 6px; z-index: 1000;
+      display: none;
+      font-family: 'Inter', sans-serif;
+    }
+    .tool-switcher-menu.is-open { display: block; }
+    .tool-switcher-header {
+      font-size: 11px; font-weight: 600; color: var(--tx3);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 8px 12px 4px;
+    }
+    .tool-switcher-item {
+      display: block; padding: 10px 12px; border-radius: 8px;
+      text-decoration: none; position: relative;
+    }
+    .tool-switcher-item + .tool-switcher-item { margin-top: 2px; }
+    .tool-switcher-item:hover { background: var(--bg-hov); }
+    .tool-switcher-item--active,
+    .tool-switcher-item--active:hover { background: var(--blue-bg); }
+    .tool-switcher-name {
+      display: block; font-size: 13px; font-weight: 600; color: var(--tx1);
+      margin-bottom: 2px;
+    }
+    .tool-switcher-item--active .tool-switcher-name { color: var(--blue); }
+    .tool-switcher-desc {
+      display: block; font-size: 12px; color: var(--tx3);
+      line-height: 1.4;
+    }
+    .tool-switcher-badge {
+      position: absolute; top: 10px; right: 12px;
+      font-size: 9px; font-weight: 700;
+      color: var(--blue); background: var(--bg-el);
+      border: 1px solid var(--blue); border-radius: 4px;
+      padding: 2px 6px; text-transform: uppercase; letter-spacing: 0.06em;
+    }
   </style>
   {% block extra_styles %}{% endblock %}
 </head>
@@ -361,6 +412,7 @@
       Email QA
     </a>
     <div class="topbar-actions">
+      {% include "_tool_switcher.html" %}
       <button class="scan-btn-primary"
               hx-post="/api/scan/all"
               hx-target="body"
@@ -417,6 +469,30 @@
       }
     });
 
+    // Prospeqt tool switcher
+    function __toggleToolSwitcher(btn) {
+      var menu = btn.nextElementSibling;
+      var isOpen = menu.classList.toggle('is-open');
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.tool-switcher')) {
+        document.querySelectorAll('.tool-switcher-menu.is-open').forEach(function(m) {
+          m.classList.remove('is-open');
+          var btn = m.parentElement.querySelector('.tool-switcher-btn');
+          if (btn) btn.setAttribute('aria-expanded', 'false');
+        });
+      }
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.tool-switcher-menu.is-open').forEach(function(m) {
+          m.classList.remove('is-open');
+          var btn = m.parentElement.querySelector('.tool-switcher-btn');
+          if (btn) btn.setAttribute('aria-expanded', 'false');
+        });
+      }
+    });
   </script>
   {% block extra_scripts %}{% endblock %}
 </body>
