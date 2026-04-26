@@ -1,3 +1,5 @@
+import asyncio
+import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -11,6 +13,8 @@ from fastapi.templating import Jinja2Templates
 from app.services.auth import AdminAuthRedirect
 from app.services.poller import discovery_poll
 from app.services.workspace import load_from_env
+
+logger = logging.getLogger(__name__)
 
 _scheduler = AsyncIOScheduler()
 
@@ -35,8 +39,16 @@ async def lifespan(app: FastAPI):
     )
     _scheduler.start()
 
-    # Run initial discovery on startup so cache is pre-populated (per OPS-04)
-    await discovery_poll()
+    # Kick off initial discovery in the background so the app can report ready
+    # immediately. Blocking startup on external API calls causes Render's
+    # gunicorn worker to be SIGKILL'd (default --timeout 30s) → 502 Bad Gateway.
+    async def _initial_discovery():
+        try:
+            await discovery_poll()
+        except Exception:
+            logger.exception("Initial discovery_poll failed")
+
+    asyncio.create_task(_initial_discovery())
 
     yield
 
